@@ -1,0 +1,46 @@
+# Sloth SLO Specification - Availability
+# This file defines the availability SLO for the product reliability lab
+# Generated from Sloth spec: https://github.com/slok/sloth
+
+apiVersion: sloth.dev/v1
+kind: SLO
+metadata:
+  name: availability-slo
+  labels:
+    service: product-reliability-lab
+    slo-category: availability
+spec:
+  labels:
+    slo: availability
+  serviceLevelIndicator:
+    name: availability
+    description: "Percentage of successful HTTP requests (2xx/3xx responses)"
+    errorBudget: 0.001  # 0.1% error budget for 99.9% SLO
+    target: 0.999       # 99.9% availability target
+    objective:
+      ratio:
+        successes:
+          metric: http_requests_total{status=~"2..|3.."}
+        total:
+          metric: http_requests_total
+  windows:
+    - window: 30d
+      errorBudget: 0.1
+      alerting:
+        name: AvailabilitySLOBurnAlert
+        labels:
+          severity: critical
+          team: platform-sre
+        annotations:
+          summary: "Availability SLO burn rate is too high"
+          description: "Availability error budget is being consumed faster than allowed"
+        burnrates:
+          - threshold: 14.4
+            window: 1h
+            longWindow: 5m
+          - threshold: 6
+            window: 6h
+            longWindow: 30m
+          - threshold: 3
+            window: 24h
+            longWindow: 2h
