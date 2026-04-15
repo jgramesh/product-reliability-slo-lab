@@ -1,0 +1,36 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Node
+node_modules/
+npm-debug.log
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+
+# Grafana
+*.log
+grafana/data/
+
+# Kubernetes secrets
+*-secret.yaml
+*.secret.yaml
+
+# Test artifacts
+*.html
+coverage/
+
+# Local config
+.env
+.env.local
+*.local.yaml
