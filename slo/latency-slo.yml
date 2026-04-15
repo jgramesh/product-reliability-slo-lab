@@ -1,0 +1,43 @@
+# Sloth SLO Specification - Latency
+# This file defines the latency SLO for the product reliability lab
+
+apiVersion: sloth.dev/v1
+kind: SLO
+metadata:
+  name: latency-slo
+  labels:
+    service: product-reliability-lab
+    slo-category: latency
+spec:
+  labels:
+    slo: latency
+  serviceLevelIndicator:
+    name: latency
+    description: "95th percentile HTTP request latency"
+    errorBudget: 0.001  # 0.1% error budget for p95 latency SLO
+    target: 0.999
+    objective:
+      latency:
+        metric: http_request_duration_seconds_bucket
+        bucket: "0.5"  # p95 should be under 500ms
+  windows:
+    - window: 30d
+      errorBudget: 0.1
+      alerting:
+        name: LatencySLOBurnAlert
+        labels:
+          severity: critical
+          team: platform-sre
+        annotations:
+          summary: "Latency SLO burn rate is too high"
+          description: "P95 latency error budget is being consumed faster than allowed"
+        burnrates:
+          - threshold: 14.4
+            window: 1h
+            longWindow: 5m
+          - threshold: 6
+            window: 6h
+            longWindow: 30m
+          - threshold: 3
+            window: 24h
+            longWindow: 2h
