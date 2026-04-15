@@ -1,0 +1,68 @@
+# Prometheus SLO Recording Rules
+# Generated from Sloth SLO specs
+# These rules calculate SLI ratios and error budget consumption
+
+groups:
+  - name: availability_slo
+    interval: 30s
+    rules:
+      # SLI: Ratio of successful requests (2xx/3xx) to total requests
+      - record: slo:availability:ratio_rate1h
+        expr: |
+          sum(rate(http_requests_total{status=~"2..|3.."}[1h]))
+          /
+          sum(rate(http_requests_total[1h]))
+
+      # Error budget remaining (available budget / total budget)
+      - record: slo:availability:error_budget_remaining
+        expr: |
+          1 - ((1 - sum(rate(http_requests_total{status=~"5.."}[1h]))
+                / sum(rate(http_requests_total[1h]))) / 0.001)
+
+      # Burn rate for availability (how fast error budget is consumed)
+      - record: slo:availability:burn_rate_1h
+        expr: |
+          sum(rate(http_requests_total{status=~"5.."}[1h]))
+          / sum(rate(http_requests_total[1h]))
+          / 0.001
+
+      - record: slo:availability:burn_rate_6h
+        expr: |
+          sum(rate(http_requests_total{status=~"5.."}[6h]))
+          / sum(rate(http_requests_total[6h]))
+          / 0.001
+
+      - record: slo:availability:burn_rate_24h
+        expr: |
+          sum(rate(http_requests_total{status=~"5.."}[24h]))
+          / sum(rate(http_requests_total[24h]))
+          / 0.001
+
+  - name: latency_slo
+    interval: 30s
+    rules:
+      # SLI: Ratio of requests under 500ms threshold
+      - record: slo:latency:ratio_rate1h
+        expr: |
+          sum(rate(http_request_duration_seconds_bucket{le="0.5"}[1h]))
+          /
+          sum(rate(http_request_duration_seconds_count[1h]))
+
+      # Burn rate for latency
+      - record: slo:latency:burn_rate_1h
+        expr: |
+          (1 - sum(rate(http_request_duration_seconds_bucket{le="0.5"}[1h]))
+               / sum(rate(http_request_duration_seconds_count[1h])))
+          / 0.001
+
+      - record: slo:latency:burn_rate_6h
+        expr: |
+          (1 - sum(rate(http_request_duration_seconds_bucket{le="0.5"}[6h]))
+               / sum(rate(http_request_duration_seconds_count[6h])))
+          / 0.001
+
+      - record: slo:latency:burn_rate_24h
+        expr: |
+          (1 - sum(rate(http_request_duration_seconds_bucket{le="0.5"}[24h]))
+               / sum(rate(http_request_duration_seconds_count[24h])))
+          / 0.001
