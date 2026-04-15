@@ -1,0 +1,79 @@
+# Prometheus Alert Rules for SLO Burn-Rate
+# Multi-window alerting strategy based on Google SRE methodology
+# Reference: https://sre.google/sre-book/monitoring-distributed-systems/
+
+groups:
+  - name: slo_availability_alerts
+    rules:
+      # Page: Error budget burn rate is very high (14.4x) - 1h/5m window
+      - alert: AvailabilitySLOBurnPageCritical
+        expr: slo:availability:burn_rate_1h > 14.4 and slo:availability:burn_rate_6h > 14.4
+        for: 5m
+        labels:
+          severity: critical
+          team: platform-sre
+          slobreach: true
+        annotations:
+          summary: "CRITICAL: Availability SLO error budget burning at 14.4x rate"
+          description: "Availability error budget is being consumed 14.4x faster than allowed. Immediate action required."
+          runbook_url: "https://github.com/jgramesh/product-reliability-slo-lab/blob/main/README.md"
+
+      # Ticket: Error budget burn rate is high (6x) - 6h/30m window
+      - alert: AvailabilitySLOBurnTicketHigh
+        expr: slo:availability:burn_rate_6h > 6 and slo:availability:burn_rate_24h > 6
+        for: 30m
+        labels:
+          severity: high
+          team: platform-sre
+          slobreach: true
+        annotations:
+          summary: "HIGH: Availability SLO error budget burning at 6x rate"
+          description: "Availability error budget is being consumed 6x faster than allowed. Create ticket for investigation."
+
+      # Warning: Error budget burn rate elevated (3x) - 24h/2h window
+      - alert: AvailabilitySLOBurnWarning
+        expr: slo:availability:burn_rate_24h > 3
+        for: 2h
+        labels:
+          severity: warning
+          team: platform-sre
+        annotations:
+          summary: "WARNING: Availability SLO error budget burning at 3x rate"
+          description: "Availability error budget is being consumed 3x faster than allowed. Monitor closely."
+
+  - name: slo_latency_alerts
+    rules:
+      # Page: Latency error budget burning at 14.4x rate
+      - alert: LatencySLOBurnPageCritical
+        expr: slo:latency:burn_rate_1h > 14.4 and slo:latency:burn_rate_6h > 14.4
+        for: 5m
+        labels:
+          severity: critical
+          team: platform-sre
+          slobreach: true
+        annotations:
+          summary: "CRITICAL: Latency SLO error budget burning at 14.4x rate"
+          description: "P95 latency error budget is being consumed 14.4x faster than allowed. Immediate action required."
+
+      # Ticket: Latency error budget burning at 6x rate
+      - alert: LatencySLOBurnTicketHigh
+        expr: slo:latency:burn_rate_6h > 6 and slo:latency:burn_rate_24h > 6
+        for: 30m
+        labels:
+          severity: high
+          team: platform-sre
+          slobreach: true
+        annotations:
+          summary: "HIGH: Latency SLO error budget burning at 6x rate"
+          description: "P95 latency error budget is being consumed 6x faster than allowed. Create ticket for investigation."
+
+      # Warning: Latency error budget burning at 3x rate
+      - alert: LatencySLOBurnWarning
+        expr: slo:latency:burn_rate_24h > 3
+        for: 2h
+        labels:
+          severity: warning
+          team: platform-sre
+        annotations:
+          summary: "WARNING: Latency SLO error budget burning at 3x rate"
+          description: "P95 latency error budget is being consumed 3x faster than allowed. Monitor closely."
